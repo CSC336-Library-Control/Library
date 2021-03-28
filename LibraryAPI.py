@@ -122,7 +122,7 @@ def remove():
     sql = "Update Books set remove=? where ISBN=?"
     cur.execute(sql, ('True', isbn))
     conn.commit()
-    return 0
+    return '0'
 
 
 @app.route('/recoverBook', methods=['POST'])
@@ -131,7 +131,7 @@ def recover():
     sql = "Update Books set remove=? where ISBN=?"
     cur.execute(sql, ('False', isbn))
     conn.commit()
-    return 0
+    return '0'
 
 
 '''
@@ -162,7 +162,7 @@ def updateProfile():
     sql = "Update User set Name=?, BirthDate=?, Email=?, Phone=?, Address=? where UserID=?"
     cur.execute(sql, (name, birthDate, email, phone, address, userID))
     conn.commit()
-    return 0
+    return '0'
 
 
 '''
@@ -215,8 +215,196 @@ def changePassword():
     sql = "update Login set Password=? where UserID=?"
     cur.execute(sql, (password, userID))
     conn.commit()
-    return 0
+    return '0'
+
+
+@app.route('/borrow', methods=['POST'])
+def borrow():
+    isbn = request.form['ISBN']
+    userID = request.form['UserID']
+    staffID = request.form['StaffID']
+    sql = "Insert BorrowRecord(UserID, ISBN,StaffID) Values(?,?,?)"
+    cur.execute(sql, (userID, isbn, staffID))
+    conn.commit()
+    sql2 = "Update Books set Copies = Copies - 1 where ISBN =?"
+    cur.execute(sql2, (isbn,))
+    conn.commit()
+    return '0'
+
+
+@app.route('/return', methods=['POST'])
+def returnBook():
+    borrowID = request.form['BorrowID']
+    borrowID = int(borrowID)
+    staffID = request.form['StaffID']
+    issue = request.form['Issue']
+    sql1 = "insert ReturnRecord(BorrowID, StaffID, Issue) Values(?, ?, ?)"
+    cur.execute(sql1, (borrowID, staffID, issue))
+    conn.commit()
+    sql2 = "Update BorrowRecord set Returned=? where BorrowID =?"
+    cur.execute(sql2, ("True", borrowID))
+    conn.commit()
+    if 'damaged' not in issue:
+        sql3 = "Update Books set Copies = Copies + 1 where ISBN =?"
+        sql4 = """select ISBN from ReturnRecord join  BorrowRecord 
+                  on BorrowRecord.BorrowID = ReturnRecord.BorrowID 
+                  where BorrowRecord.BorrowID =?"""
+        cur.execute(sql4, (borrowID,))
+        result = []
+        for data in cur:
+            result.append(data)
+        cur.execute(sql3, result[0])
+        conn.commit()
+    return '0'
+
+
+"""
+
+Sample output:
+[{'Author': 'author1', 
+  'BorrowDate': '2021-03-18 14:08:48', 
+  'BorrowID': 1, 
+  'DueDate': '2021-04-01 14:08:48', 
+  'ISBN': 'isbn1', 
+  'Title': 'book1', 
+  'image': None}, 
+ {'Author': 'author9', 
+ 'BorrowDate': '2021-03-28 16:22:13', 
+ 'BorrowID': 6, 
+ 'DueDate': '2021-04-11 16:22:13', 
+ 'ISBN': 'isbn9', 
+ 'Title': 'title9', 
+ 'image': ''}]
+"""
+@app.route('/borrowRecord', methods=['POST'])
+def borrowRecord():
+    userID = request.form['UserID']
+    sql = """select BorrowID, Books.ISBN, Title, Author, BorrowDate, DueDate, image from BorrowRecord 
+             join Books on BorrowRecord.ISBN=Books.ISBN
+             where UserID = ? and Returned=? and Remove=?"""
+    cur.execute(sql, (userID, "False", "False"))
+    row_headers = [x[0] for x in cur.description]
+    result = cur.fetchall()
+    json_data = []
+    for data in result:
+        json_data.append(dict(zip(row_headers, data)))
+    return json.dumps(json_data, indent=4, sort_keys=True, default=str)
+
+
+"""
+Sample Output:
+[{'Author': 'author9', 
+  'BorrowDate': '2021-03-28 14:44:49', 
+  'DueDate': '2021-04-11 14:44:49', 
+   'ISBN': 'isbn9', 
+   'Issue': '', 
+   'ReturnDate': '2021-03-28 15:05:36', 
+   'Title': 'title9', 
+   'image': ''}, 
+   {'Author': 'author9', 
+   'BorrowDate': '2021-03-28 15:03:52', 
+   'DueDate': '2021-04-11 15:03:52', 
+   'ISBN': 'isbn9', 
+   'Issue': '', 
+   'ReturnDate': '2021-03-28 16:08:27', 
+   'Title': 'title9', 
+   'image': ''}]
+"""
+@app.route('/returnRecord', methods=['POST'])
+def returnRecord():
+    userID = request.form['UserID']
+    sql = """Select Books.ISBN, Title, Author, BorrowDate, ReturnDate, DueDate, image, Issue from BorrowRecord
+             join ReturnRecord on BorrowRecord.BorrowId = ReturnRecord.BorrowId
+             join Books on BorrowRecord.ISBN = Books.ISBN
+             where UserID =? and Remove = ?"""
+    cur.execute(sql, (userID, "False"))
+    row_headers = [x[0] for x in cur.description]
+    result = cur.fetchall()
+    json_data = []
+    for data in result:
+        json_data.append(dict(zip(row_headers, data)))
+    return json.dumps(json_data, indent=4, sort_keys=True, default=str)
+
+
+@app.route('/order', methods=['POST'])
+def order():
+    isbn = request.form['ISBN']
+    userID = request.form['UserID']
+    sql = "insert OrderRecord(ISBN, UserID) Values(?,?)"
+    cur.execute(sql, (isbn, userID))
+    conn.commit()
+    sql2 = "Update Books set Copies = Copies - 1 where ISBN =?"
+    cur.execute(sql2, (isbn,))
+    conn.commit()
+    return '0'
+
+
+@app.route('/cancelOrder', methods=['POST'])
+def cancel():
+    orderID = request.form['OrderID']
+    orderID = int(orderID)
+    sql = "update OrderRecord set Status=? where OrderID=?"
+    cur.execute(sql, ("Canceled", orderID))
+    conn.commit()
+    sql2 = """update Books set Copies = copies + 1
+              where ISBN in 
+              (select ISBN from OrderRecord where orderID=?)"""
+    cur.execute(sql2, (orderID,))
+    conn.commit()
+    return '0'
+
+
+@app.route('/completeOrder', methods=['POST'])
+def complete():
+    orderID = request.form['OrderID']
+    orderID = int(orderID)
+    staffID = request.form['StaffID']
+    sql1 = "select isbn, UserID from OrderRecord where OrderID =?"
+    cur.execute(sql1, (orderID,))
+    result = []
+    for data in cur:
+        result.append(data)
+    sql2 = "insert BorrowRecord(ISBN, UserID, StaffID) Values(?,?,?)"
+    cur.execute(sql2, (result[0][0], result[0][1], staffID))
+    conn.commit()
+    sql = "update OrderRecord set Status=? where OrderID=?"
+    cur.execute(sql, ("Completed", orderID))
+    conn.commit()
+    return '0'
+
+
+@app.route('/orderRecord', methods=['POST'])
+def orderRecord():
+    userID = request.form['UserID']
+    sql = """select Books.ISBN, Title, Author, image, PublicationDate, Date from OrderRecord
+             join Books on OrderRecord.ISBN = Books.ISBN 
+             where UserID = ? and Remove = ? and Status = ?"""
+    cur.execute(sql, (userID, "False", "Waiting"))
+    row_headers = [x[0] for x in cur.description]
+    result = cur.fetchall()
+    json_data = []
+    for data in result:
+        json_data.append(dict(zip(row_headers, data)))
+    return json.dumps(json_data, indent=4, sort_keys=True, default=str)
+
+
+"""
+This api is for staff accounts. Display all the orders with status "Waiting"
+"""
+@app.route('/allOrders', methods=['POST'])
+def allOrders():
+    sql = """select Books.ISBN, Title, Author, image, PublicationDate, Date, UserID from OrderRecord
+             join Books on OrderRecord.ISBN = Books.ISBN 
+             where Remove = ? and Status = ?"""
+    cur.execute(sql, ("False", "Waiting"))
+    row_headers = [x[0] for x in cur.description]
+    result = cur.fetchall()
+    json_data = []
+    for data in result:
+        json_data.append(dict(zip(row_headers, data)))
+    return json.dumps(json_data, indent=4, sort_keys=True, default=str)
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+
