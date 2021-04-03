@@ -13,11 +13,11 @@ CREATE TABLE Login(
 DROP TABLE if EXISTS Books;
 CREATE TABLE Books(
     ISBN VARCHAR(32) PRIMARY KEY,
-    Title VARCHAR(32) NOT NULL,
+    Title VARCHAR(64) NOT NULL,
     Copies INTEGER NOT NULL,
     PublicationDate VARCHAR(32),
     Author VARCHAR(32) NOT NULL,
-    Image VARCHAR(64),
+    Image VARCHAR(32),
     REMOVE ENUM('True', 'False') DEFAULT 'False'
 );
 
@@ -96,18 +96,25 @@ INSERT INTO USER(UserID, NAME) VALUES ('Staff2', 'Staff2');
 SELECT * FROM Login;
 SELECT * FROM USER;
 
-INSERT INTO Books(ISBN, Title, Copies, Author) VALUES ('isbn1', 'book1', 3, 'author1');
-INSERT INTO Books(ISBN, Title, Copies, Author) VALUES ('isbn2', 'book2', 3, 'author2');
-INSERT INTO Books(ISBN, Title, Copies, Author) VALUES ('isbn3', 'book3', 3, 'author3');
-INSERT INTO Books(ISBN, Title, Copies, Author) VALUES ('isbn4', 'book4', 3, 'author4');
+INSERT INTO Books VALUES('1250178606', 'The Four Winds: A Novel', 8, '2021-02-02', 'Kristin Hannah', '1250178606.jpg', 'False');
+INSERT INTO Books VALUES('0735219095', 'Where the Crawdads Sing', 4, '2018-08-14', 'Delia Owens', '0735219095.jpg','False');
+INSERT INTO Books VALUES('0525559477', 'The Midnight Library: A Novel', 6, '2020-09-29', 'Matt Haig', '0525559477.jpg','False');
+INSERT INTO Books VALUES('1635640520', 'The Cedar Key ', 6, '2020-09-06', 'Stephenia H. McGee', '1635640520.jpg','False');
+INSERT INTO Books VALUES('0525536299', 'The Vanishing Half: A Novel', 6, '2020-06-02', 'Brit Bennett', '0525536299.jpg','False');
+INSERT INTO Books VALUES('0593128176', 'The Beekeeper of Aleppo: A Novel', 6, '2020-06-23', 'Christy Lefteri ', '0593128176.jpg','False');
+INSERT INTO Books VALUES('1455563920', 'Pachinko', 6, '2017-11-14', 'Min Jin Lee', '1455563920.jpg','False');
+INSERT INTO Books VALUES('153871485X', 'Free Food for Millionaires ', 6, '2018-06-05', 'Min Jin Lee', '153871485X.jpg','False');
+INSERT INTO Books VALUES('1984819887', 'The Book of Lost Friends: A Novel', 6, '2020-04-07', 'Lisa Wingate', '1984819887.jpg','False');
+INSERT INTO Books VALUES('1524763136', 'Becoming', 6, '2018-11-13', 'Michelle Obama', '1524763136.jpg','False');
+
 
 SELECT * FROM Books;
 
-INSERT INTO BorrowRecord(UserID, ISBN, StaffID) VALUES ('User1', 'isbn1', 'Staff1');
+INSERT INTO BorrowRecord(UserID, ISBN, StaffID) VALUES ('User1', '1250178606', 'Staff1');
 
 SELECT * FROM borrowrecord;
 
-INSERT INTO OrderRecord(UserID, ISBN) VALUES ('User1', 'isbn1');
-INSERT INTO OrderRecord(UserID, ISBN) VALUES ('User2', 'isbn1');
+INSERT INTO OrderRecord(UserID, ISBN) VALUES ('User1', '1250178606');
+INSERT INTO OrderRecord(UserID, ISBN) VALUES ('User2', '1250178606');
 
 SELECT * FROM OrderRecord;
