@@ -1,11 +1,18 @@
 import mariadb
 import json
 from flask import Flask, request
-from flask_restful import Api
+from flask_cors import CORS
 
 
 app = Flask(__name__)
-api = Api(app)
+
+CORS(app)
+cors = CORS(app, resources={
+    r"/*": {
+        "origins": "*"
+    }
+})
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # Connect to the MariaDB
 try:
@@ -29,7 +36,9 @@ Output:
 @app.route('/login', methods=['POST'])
 def login():
     userID = request.form['UserID']
+    print(userID)
     password = request.form['Password']
+    print(password)
     sql = "select * from Login where UserID=? and Password=?"
     cur.execute(sql, (userID, password,))
     result = []
@@ -388,9 +397,6 @@ def orderRecord():
     return json.dumps(json_data, indent=4, sort_keys=True, default=str)
 
 
-"""
-This api is for staff accounts. Display all the orders with status "Waiting"
-"""
 @app.route('/allOrders', methods=['POST'])
 def allOrders():
     sql = """select Books.ISBN, Title, Author, image, PublicationDate, Date, UserID from OrderRecord
@@ -407,4 +413,3 @@ def allOrders():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
