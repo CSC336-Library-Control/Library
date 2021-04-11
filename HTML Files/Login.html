@@ -47,9 +47,15 @@
                 window.alert(data.content);
              }
             else if (data.content = "User")
+            {
                 window.location.href="UserHome.html";
+                localStorage.setItem("UserID", UserID);
+             }
             else
+            {
                 window.location.href="StaffHome.html";
+                localStorage.setItem("UserID", UserID);
+            }
         }
     }
     }
