@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <body>
+    <div>
+        <h1>Library</h1>
+        <form>
+            <label for="username">Username:</label><br>
+            <input type="text" id="username" name="username"><br>
+            <label for="pwd">Password:</label><br>
+            <input type="password" id="pwd" name="pwd"><br>
+            <input type="button" onclick=Login() value="Login">
+            <input type="button" onclick=Register() value="Register">
+        </form>
+    </div>
+    <style>
+    div {
+    height: 200px;
+    width: 400px;
+    background: white;
+
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-top: -100px;
+    margin-left: -200px;
+}
+    </style>
+    <script>
+    var xhr = new XMLHttpRequest();
+    function Login(){
+        xhr.open("POST", "http://127.0.0.1:5000/login", true);
+        xhr.setRequestHeader('Access-Control-Allow-Headers', '*');
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+        var UserID = document.getElementById('username').value;
+        var Password = document.getElementById('pwd').value;
+        var params = "UserID=" + UserID + "&Password=" + Password;
+        xhr.send(params);
+        xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var data = JSON.parse(this.responseText);
+            if (data.code == 1)
+            {   window.location.href="Login.html";
+                window.alert(data.content);
+             }
+            else if (data.content = "User")
+                window.location.href="UserHome.html";
+            else
+                window.location.href="StaffHome.html";
+        }
+    }
+    }
+    function Register(){
+        xhr.open("POST", "http://127.0.0.1:5000/newUser", true);
+        xhr.setRequestHeader('Access-Control-Allow-Headers', '*');
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+        var UserID = document.getElementById('username').value;
+        var Password = document.getElementById('pwd').value;
+        var params = "UserID=" + UserID + "&Password=" + Password + "&Role=User";
+        xhr.send(params);
+        xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var data = JSON.parse(this.responseText);
+            window.alert(data.content);
+        }
+    }
+    }
+    </script>
+    </body>
+</head>
+</html>
