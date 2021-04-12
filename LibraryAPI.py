@@ -1,6 +1,6 @@
 import mariadb
 import json
-from flask import Flask, request
+from flask import Flask, request, render_template
 from flask_cors import CORS
 
 
@@ -95,6 +95,18 @@ Output:
 def book():
     sql = "select * from Books where remove=?"
     cur.execute(sql, ('False',))
+    row_headers = [x[0] for x in cur.description]
+    result = cur.fetchall()
+    json_data = []
+    for data in result:
+        json_data.append(dict(zip(row_headers, data)))
+    return json.dumps(json_data)
+
+
+@app.route('/getRemove', methods=['POST'])
+def getRemove():
+    sql = "select * from Books where remove=?"
+    cur.execute(sql, ('True',))
     row_headers = [x[0] for x in cur.description]
     result = cur.fetchall()
     json_data = []
@@ -228,16 +240,19 @@ def changePassword():
 
 @app.route('/borrow', methods=['POST'])
 def borrow():
-    isbn = request.form['ISBN']
-    userID = request.form['UserID']
-    staffID = request.form['StaffID']
-    sql = "Insert BorrowRecord(UserID, ISBN,StaffID) Values(?,?,?)"
-    cur.execute(sql, (userID, isbn, staffID))
-    conn.commit()
-    sql2 = "Update Books set Copies = Copies - 1 where ISBN =?"
-    cur.execute(sql2, (isbn,))
-    conn.commit()
-    return '0'
+    try:
+        isbn = request.form['ISBN']
+        userID = request.form['UserID']
+        staffID = request.form['StaffID']
+        sql = "Insert BorrowRecord(UserID, ISBN,StaffID) Values(?,?,?)"
+        cur.execute(sql, (userID, isbn, staffID))
+        conn.commit()
+        sql2 = "Update Books set Copies = Copies - 1 where ISBN =?"
+        cur.execute(sql2, (isbn,))
+        conn.commit()
+        return json.dumps({'content': 'Succeed'})
+    except mariadb.Error as err:
+        return json.dumps({'content': err.args})
 
 
 @app.route('/return', methods=['POST'])
@@ -252,7 +267,7 @@ def returnBook():
     sql2 = "Update BorrowRecord set Returned=? where BorrowID =?"
     cur.execute(sql2, ("True", borrowID))
     conn.commit()
-    if 'damaged' not in issue:
+    if 'Damaged' not in issue:
         sql3 = "Update Books set Copies = Copies + 1 where ISBN =?"
         sql4 = """select ISBN from ReturnRecord join  BorrowRecord 
                   on BorrowRecord.BorrowID = ReturnRecord.BorrowID 
@@ -321,7 +336,7 @@ Sample Output:
 @app.route('/returnRecord', methods=['POST'])
 def returnRecord():
     userID = request.form['UserID']
-    sql = """Select Books.ISBN, Title, Author, BorrowDate, ReturnDate, DueDate, image, Issue from BorrowRecord
+    sql = """Select Books.ISBN, Title, Author, BorrowDate, ReturnDate, DueDate, Image, Issue from BorrowRecord
              join ReturnRecord on BorrowRecord.BorrowId = ReturnRecord.BorrowId
              join Books on BorrowRecord.ISBN = Books.ISBN
              where UserID =? and Remove = ?"""
@@ -398,10 +413,24 @@ def orderRecord():
 
 @app.route('/allOrders', methods=['POST'])
 def allOrders():
-    sql = """select Books.ISBN, Title, Author, image, PublicationDate, Date, UserID from OrderRecord
+    sql = """select Books.ISBN, Title, Author, Image, PublicationDate, Date, UserID, OrderID from OrderRecord
              join Books on OrderRecord.ISBN = Books.ISBN 
              where Remove = ? and Status = ?"""
     cur.execute(sql, ("False", "Waiting"))
+    row_headers = [x[0] for x in cur.description]
+    result = cur.fetchall()
+    json_data = []
+    for data in result:
+        json_data.append(dict(zip(row_headers, data)))
+    return json.dumps(json_data, indent=4, sort_keys=True, default=str)
+
+
+@app.route('/allBorrow', methods=['POST'])
+def allBorrow():
+    sql = """select BorrowID, Books.ISBN, Title, Author, BorrowDate, DueDate, Image, UserID from BorrowRecord 
+             join Books on BorrowRecord.ISBN=Books.ISBN
+             where Returned=? and Remove=?"""
+    cur.execute(sql, ("False", "False"))
     row_headers = [x[0] for x in cur.description]
     result = cur.fetchall()
     json_data = []
