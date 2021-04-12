@@ -36,9 +36,7 @@ Output:
 @app.route('/login', methods=['POST'])
 def login():
     userID = request.form['UserID']
-    print(userID)
     password = request.form['Password']
-    print(password)
     sql = "select * from Login where UserID=? and Password=?"
     cur.execute(sql, (userID, password,))
     result = []
@@ -62,11 +60,11 @@ def newUser():
     password = request.form['Password']
     role = request.form['Role']
     sql = "insert into login values(?,?,?)"
-    sql2 = "insert into user(userID) values(?)"
+    sql2 = "insert into user(userID, Name) values(?, ?)"
     try:
         cur.execute(sql,(userID,password,role))
         conn.commit()
-        cur.execute(sql2, (userID,))
+        cur.execute(sql2, (userID, userID))
         conn.commit()
         return json.dumps({'code': 0,
                            'content': "succeed"})
@@ -199,8 +197,9 @@ def search():
     context = request.form['Context']
     searchType = request.form['Type']
     if searchType == 'ISBN':
-        sql = "select * from Books where ISBN=? and remove='False'"
-        cur.execute(sql, (context,))
+        sql = "select * from Books where ISBN like ? and remove='False'"
+        str1 = '%' + context + '%'
+        cur.execute(sql, (str1,))
     elif searchType == 'Title':
         sql2 = "select * from Books where Title like ? and remove='False' "
         str1 = '%' + context + '%'
@@ -288,7 +287,7 @@ Sample output:
 @app.route('/borrowRecord', methods=['POST'])
 def borrowRecord():
     userID = request.form['UserID']
-    sql = """select BorrowID, Books.ISBN, Title, Author, BorrowDate, DueDate, image from BorrowRecord 
+    sql = """select BorrowID, Books.ISBN, Title, Author, BorrowDate, DueDate, Image from BorrowRecord 
              join Books on BorrowRecord.ISBN=Books.ISBN
              where UserID = ? and Returned=? and Remove=?"""
     cur.execute(sql, (userID, "False", "False"))
@@ -385,7 +384,7 @@ def complete():
 @app.route('/orderRecord', methods=['POST'])
 def orderRecord():
     userID = request.form['UserID']
-    sql = """select Books.ISBN, Title, Author, image, PublicationDate, Date from OrderRecord
+    sql = """select Books.ISBN, Title, Author, Image, PublicationDate, Date, OrderID from OrderRecord
              join Books on OrderRecord.ISBN = Books.ISBN 
              where UserID = ? and Remove = ? and Status = ?"""
     cur.execute(sql, (userID, "False", "Waiting"))
