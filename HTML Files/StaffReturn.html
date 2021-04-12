@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StaffReturn</title>
+</head>
+<style type="text/css">
+.top{
+    height: auto;
+    width:100%;
+    margin-left: 0;
+    background:rgb(189, 181, 181);
+    position: fixed;
+    top: 0;
+    margin-bottom: 5px;
+}
+.top ul{
+    width: auto;
+    list-style-type: none;
+    white-space:nowrap;
+    overflow: hidden;
+    margin-left: 5%;
+    // margin-top: 0;
+    padding: 0;
+
+}
+.top li {
+    float:left;
+    margin-right:2%;
+    position: relative;
+    overflow: hidden;
+}
+
+.top li a{
+    display: block;
+    color:white;
+    text-align: center;
+    padding: 3px;
+    overflow: hidden;
+    text-decoration: none;
+
+}
+.top li a:hover{
+    background-color: #111;
+}
+.top ul li ul{
+    margin-left: -0.2px;
+    background:rgb(189, 181, 181);
+    position: relative;
+    display: none;
+}
+.top ul li ul li{
+
+    float:none;
+    text-align: center;
+}
+.top ul li:hover ul{
+    display: block;
+}
+body{
+    background:#eff3f5;
+}
+
+.div2 {
+    height: 550px;
+    width: 800px;
+    background: #eff3f5;
+    overflow: auto;
+
+    position: fixed;
+    top: 30%;
+    left: 30%;
+    margin-top: -100px;
+    margin-left: -200px;
+}
+
+#my_bar {
+    width: 100%;
+    height: 45px;
+    overflow: hidden;
+    padding-bottom: 0px;
+}
+
+#my_bar span {
+    height: 100%;
+    display: inline;
+    overflow: hidden;
+    padding-left: 0px
+}
+
+#my_input {
+    height: 100%;
+    width: 100%;
+    text-align: center;
+display: inline;
+}
+
+#my_input_submit {
+    height: 50%;
+}
+
+.div3 {
+     border: 3px solid #0f0;
+     overflow: auto;
+}
+.img {
+    float: left;
+    width: 100px;
+    height: 100px;
+    background: #000;
+}
+.div4 {
+    float: left;
+}
+</style>
+<body>
+    <div class="top">
+                   <center>
+                    <ul>
+                    <li><a href="Login.html"><b>Log Out</b></a></li>
+                    <li><a href="StaffHome.html"><b>Home</b></a></li>
+                    <li><a href="StaffProfile.html">Profile</a></li>
+                    <li><a href="StaffOrder.html">Order</a></li>
+                    <li><a href="StaffBorrow.html">Borrow</a></li>
+                    <li><a href="StaffReturn.html">Return</a></li>
+                    <li><a href="AddBook.html">Add</a></li>
+                    </ul>
+                    </center>
+    </div>
+    <div class="div2" id="Center">
+        <h1>Return</h1>
+        <div id="my_bar">
+
+    <span>
+        <input type="text" id="keyword" value="UserID">
+        <input type="button" onclick=Search() value="Search">
+        </span>
+    </div>
+    </div>
+    <script>
+    var UserID = localStorage.getItem("UserID");
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "http://127.0.0.1:5000/allBorrow", true);
+    xhr.setRequestHeader('Access-Control-Allow-Headers', '*');
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+    xhr.send();
+    var data;
+    xhr.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        data = JSON.parse(this.responseText);
+        var div = document.createElement("AddElement");
+        var path = "Books/";
+        var i = 0;
+        div.innerHTML = '<form id="AddElement">\n';
+        for (const book of data) {
+        div.innerHTML +=
+        '<div class="div3">\n' +
+        '<img class="img" src=' + path + book.Image + '/> \n' +
+            '<div class="div4">\n' +
+            '<label style="font-weight: bold;">Title:</label>\n' +
+            '<label>'+ book.Title+ '<br>\n' +
+            '<label style="font-weight: bold;">Author:</label>\n' +
+            '<label>'+ book.Author+ '<br>\n' +
+            '<label style="font-weight: bold;">UserID:</label>\n' +
+            '<label>'+ book.UserID+ ' <br>\n' +
+            '<label style="font-weight: bold;">ISBN:</label>\n' +
+            '<label>'+ book.ISBN+ '<br>\n' +
+            '<label style="font-weight: bold;">Borrow Date:</label>\n' +
+            '<label>'+ book.BorrowDate+ '<br>\n'  +
+            '<label style="font-weight: bold;">Due Date:</label>\n' +
+            '<label>'+ book.DueDate+ ' &emsp;&emsp;&emsp; </label>\n' +
+            '<input type="button" onclick=Return('+ i +') value="Return">\n' +
+         '</div>\n' +
+        '</div>\n';
+        i += 1;
+        }
+      div.innerHTML += '<\form>\n';
+      document.getElementById('Center').appendChild(div);
+     }
+     }
+
+     function Search(){
+     xhr.open("POST", "http://127.0.0.1:5000/borrowRecord", true);
+     xhr.setRequestHeader('Access-Control-Allow-Headers', '*');
+     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+     xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+     var context = document.getElementById('keyword').value;
+     if (!(context.charAt(0) >= '0' && context.charAt(0) <= '9')) {
+     context = context.charAt(0).toUpperCase() + context.slice(1);
+    }
+     var param = "UserID=" + context;
+     console.log(param);
+     xhr.send(param);
+    xhr.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        data = JSON.parse(this.responseText);
+        var div = document.getElementById('Center').lastChild;
+        console.log(div);
+        if (div != null)
+            document.getElementById('Center').removeChild(div)
+        var div = document.createElement("AddElement");
+        var path = "Books/";
+        var i = 0;
+        div.innerHTML = '<form id="AddElement">\n';
+        for (const book of data) {
+        div.innerHTML +=
+        '<div class="div3">\n' +
+        '<img class="img" src=' + path + book.Image + '/> \n' +
+            '<div class="div4">\n' +
+            '<label style="font-weight: bold;">Title:</label>\n' +
+            '<label>'+ book.Title+ '<br>\n' +
+            '<label style="font-weight: bold;">Author:</label>\n' +
+            '<label>'+ book.Author+ '<br>\n' +
+            '<label style="font-weight: bold;">UserID:</label>\n' +
+            '<label>'+ context+ ' <br>\n' +
+            '<label style="font-weight: bold;">ISBN:</label>\n' +
+            '<label>'+ book.ISBN+ '<br>\n' +
+            '<label style="font-weight: bold;">Borrow Date:</label>\n' +
+            '<label>'+ book.BorrowDate+ '<br>\n'  +
+            '<label style="font-weight: bold;">Due Date:</label>\n' +
+            '<label>'+ book.DueDate+ ' &emsp;&emsp;&emsp; </label>\n' +
+            '<input type="button" onclick=Return('+ i +') value="Return">\n' +
+         '</div>\n' +
+        '</div>\n';
+        i += 1;
+        }
+      div.innerHTML += '<\form>\n';
+      document.getElementById('Center').appendChild(div);
+     }
+     }
+     }
+
+    function Return(n){
+     var issue = window.prompt("What's the issue?\n Enter 'Damaged' if the book is damaged.", null);
+     xhr.open("POST", "http://127.0.0.1:5000/return", true);
+     xhr.setRequestHeader('Access-Control-Allow-Headers', '*');
+     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+     xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+     var param = "BorrowID=" + data[n].BorrowID + "&StaffID=" + UserID + "&Issue="+ issue;
+     xhr.send(param);
+     xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+        window.alert("Succeed");
+        window.location.href="StaffReturn.html";
+     }
+     }
+     }
+    </script>
+</body>
+</html>

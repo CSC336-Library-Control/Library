@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StaffHome</title>
+</head>
+<style type="text/css">
+.top{
+    height: auto;
+    width:100%;
+    margin-left: 0;
+    background:rgb(189, 181, 181);
+    position: fixed;
+    top: 0;
+    margin-bottom: 5px;
+}
+.top ul{
+    width: auto;
+    list-style-type: none;
+    white-space:nowrap;
+    overflow: hidden;
+    margin-left: 5%;
+    // margin-top: 0;
+    padding: 0;
+
+}
+.top li {
+    float:left;
+    margin-right:2%;
+    position: relative;
+    overflow: hidden;
+}
+
+.top li a{
+    display: block;
+    color:white;
+    text-align: center;
+    padding: 3px;
+    overflow: hidden;
+    text-decoration: none;
+
+}
+.top li a:hover{
+    background-color: #111;
+}
+.top ul li ul{
+    margin-left: -0.2px;
+    background:rgb(189, 181, 181);
+    position: relative;
+    display: none;
+}
+.top ul li ul li{
+
+    float:none;
+    text-align: center;
+}
+.top ul li:hover ul{
+    display: block;
+}
+body{
+    background:#eff3f5;
+}
+
+.div2 {
+    height: 550px;
+    width: 800px;
+    background: #eff3f5;
+    overflow: auto;
+
+    position: fixed;
+    top: 30%;
+    left: 30%;
+    margin-top: -100px;
+    margin-left: -200px;
+}
+
+#my_bar {
+    width: 100%;
+    height: 45px;
+    overflow: hidden;
+    padding-bottom: 0px;
+}
+
+#my_bar span {
+    height: 100%;
+    display: inline;
+    overflow: hidden;
+    padding-left: 0px
+}
+
+#my_input {
+    height: 100%;
+    width: 100%;
+    text-align: center;
+display: inline;
+}
+
+#my_input_submit {
+    height: 50%;
+}
+
+.div3 {
+     border: 3px solid #0f0;
+     overflow: auto;
+}
+.img {
+    float: left;
+    width: 100px;
+    height: 100px;
+    background: #000;
+}
+.div4 {
+    float: left;
+}
+</style>
+<body>
+    <div class="top">
+                   <center>
+                    <ul>
+                    <li><a href="Login.html"><b>Log Out</b></a></li>
+                    <li><a href="StaffHome.html"><b>Home</b></a></li>
+                    <li><a href="StaffProfile.html">Profile</a></li>
+                    <li><a href="StaffOrder.html">Order</a></li>
+                    <li><a href="StaffBorrow.html">Borrow</a></li>
+                    <li><a href="StaffReturn.html">Return</a></li>
+                    <li><a href="AddBook.html">Add</a></li>
+                    </ul>
+                    </center>
+    </div>
+    <div class="div2" id="Center">
+        <h1>Add Book</h1>
+        <label style="font-weight: bold;display: inline-block;
+        width: 140px;
+        text-align: right;">Title:</label>
+        <input type="text" id="title"/> <br>
+        <label style="font-weight: bold;display: inline-block;
+        width: 140px;
+        text-align: right;">Author:</label>
+        <input type="text" id="author"/><br>
+        <label style="font-weight: bold;display: inline-block;
+        width: 140px;
+        text-align: right;">Publication Date:</label>
+        <input type="text" id="date"><br>
+        <label style="font-weight: bold;display: inline-block;
+        width: 140px;
+        text-align: right;">ISBN:</label>
+        <input type="text" id="ISBN"><br>
+        <label style="font-weight: bold;display: inline-block;
+        width: 140px;
+        text-align: right;">Copies:</label>
+        <input type="text" id="copies"><br>
+        <div class="block">
+        <label style="font-weight: bold;display: inline-block;
+        width: 140px;
+        text-align: right;">Image:</label>
+        <input type="text" id="Image"/><br>
+        </div>
+        <input type="button" style="margin-left:15em;height:5%;Width:15%;" onclick=newBook() value="Submit">
+        <h2>Removed Books</h2>
+    </div>
+    <script>
+    var UserID = localStorage.getItem("UserID");
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "http://127.0.0.1:5000/getRemove", true);
+    xhr.setRequestHeader('Access-Control-Allow-Headers', '*');
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+    xhr.send();
+    var data;
+    xhr.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        data = JSON.parse(this.responseText);
+        var div = document.createElement("AddElement");
+        var path = "Books/";
+        var i = 0;
+        div.innerHTML = '<form id="AddElement">\n';
+        for (const book of data) {
+        div.innerHTML +=
+        '<div class="div3">\n' +
+        '<img class="img" src=' + path + book.Image + '/> \n' +
+            '<div class="div4">\n' +
+            '<label style="font-weight: bold;">Title:</label>\n' +
+            '<label>'+ book.Title+ '<br>\n' +
+            '<label style="font-weight: bold;">Author:</label>\n' +
+            '<label>'+ book.Author+ '<br>\n' +
+            '<label style="font-weight: bold;">Publication Date:</label>\n' +
+            '<label>'+ book.PublicationDate+ '<br>\n' +
+            '<label style="font-weight: bold;">ISBN:</label>\n' +
+            '<label>'+ book.ISBN+ '<br>\n' +
+            '<label style="font-weight: bold;">Count:</label>\n' +
+            '<label>'+ book.Copies+ ' &emsp;&emsp;&emsp; </label>\n' +
+            '<input type="button" onclick=Recover('+ i +') value="Recover">\n' +
+         '</div>\n' +
+        '</div>\n';
+        i += 1;
+        }
+      div.innerHTML += '<\form>\n';
+      document.getElementById('Center').appendChild(div);
+     }
+     }
+
+    function Recover(n){
+    xhr.open("POST", "http://127.0.0.1:5000/recoverBook", true);
+    xhr.setRequestHeader('Access-Control-Allow-Headers', '*');
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+    var param ="ISBN=" + data[n].ISBN;
+    console.log(param);
+    xhr.send(param);
+    xhr.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        window.alert("Succeed");
+        window.location.href="AddBook.html";
+        }
+    }
+    }
+
+    function newBook(){
+    var param = "ISBN=" + document.getElementById('ISBN').value;
+    param += "&Title=" + document.getElementById('title').value;
+    param += "&Author=" + document.getElementById('author').value;
+    param += "&PublicationDate=" + document.getElementById('date').value;
+    param += "&Copies=" + document.getElementById('copies').value;
+    param += "&Image=" + document.getElementById('Image').value;
+    xhr.open("POST", "http://127.0.0.1:5000/addBook", true);
+    xhr.setRequestHeader('Access-Control-Allow-Headers', '*');
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+    console.log(param);
+    xhr.send(param);
+    xhr.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var data = JSON.parse(this.responseText);
+        window.alert(data.content);
+        window.location.href="AddBook.html";
+        }
+    }
+    }
+    </script>
+</body>
+</html>
