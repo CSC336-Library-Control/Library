@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -119,10 +120,10 @@ display: inline;
                     <ul>
                     <li><a href="Login.html"><b>Log Out</b></a></li>
                     <li><a href="UserHome.html"><b>Home</b></a></li>
-                    <li><a href=" ">Profile</a></li>
-                    <li><a href="#">Order</a></li>
-                    <li><a href="#">Borrow</a></li>
-                    <li><a href="#">Return</a></li>
+                    <li><a href="Profile.html">Profile</a></li>
+                    <li><a href="UserOrder.html">Order</a></li>
+                    <li><a href="Borrow.html">Borrow</a></li>
+                    <li><a href="Return.html">Return</a></li>
                     </ul>
                     </center>
     </div>
@@ -130,8 +131,8 @@ display: inline;
         <h1>Library Control</h1>
         <div id="my_bar">
 
-        <div id="my_input">
-            <select name="my_name">
+        <div>
+            <select name="my_name", id="type">
                 <option value="ISBN">ISBN</option>
                 <option value="Title">Title</option>
                 <option value="Author">Author</option>
@@ -151,11 +152,14 @@ display: inline;
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
     xhr.send();
+    var data;
     xhr.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-        var data = JSON.parse(this.responseText);
+        data = JSON.parse(this.responseText);
         var div = document.createElement("AddElement");
         var path = "Books/";
+        var i = 0;
+        div.innerHTML = '<form id="AddElement">\n';
         for (const book of data) {
         div.innerHTML +=
         '<div class="div3">\n' +
@@ -167,15 +171,92 @@ display: inline;
             '<label>'+ book.Author+ '<br>\n' +
             '<label style="font-weight: bold;">Publication Date:</label>\n' +
             '<label>'+ book.PublicationDate+ '<br>\n' +
+            '<label style="font-weight: bold;">ISBN:</label>\n' +
+            '<label>'+ book.ISBN+ '<br>\n' +
             '<label style="font-weight: bold;">Count:</label>\n' +
             '<label>'+ book.Copies+ ' &emsp;&emsp;&emsp; </label>\n' +
-            '<input type="button" onclick=Order(this) value="Order">\n' +
+            '<input type="button" onclick=Order('+ i +') value="Order">\n' +
          '</div>\n' +
         '</div>\n';
+        i += 1;
         }
+      div.innerHTML += '<\form>\n';
       document.getElementById('Center').appendChild(div);
      }
      }
+
+     function Search(){
+     xhr.open("POST", "http://127.0.0.1:5000/search", true);
+     xhr.setRequestHeader('Access-Control-Allow-Headers', '*');
+     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+     xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+     var context = document.getElementById('keyword').value;
+     if (!(context.charAt(0) >= '0' && context.charAt(0) <= '9')) {
+     context = context.charAt(0).toUpperCase() + context.slice(1);
+    }
+     var sel = document.getElementById('type');
+     var type = sel.options[sel.selectedIndex].text;
+     var param = "Context=" + context + "&Type=" + type;
+     console.log(param);
+     xhr.send(param);
+    xhr.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        data = JSON.parse(this.responseText);
+        var div = document.getElementById('Center').lastChild;
+        console.log(div);
+        if (div != null)
+            document.getElementById('Center').removeChild(div)
+        var div = document.createElement("AddElement");
+        var path = "Books/";
+        var i = 0;
+        div.innerHTML = '<form id="AddElement">\n';
+        for (const book of data) {
+        div.innerHTML +=
+        '<div class="div3">\n' +
+        '<img class="img" src=' + path + book.Image + '/> \n' +
+            '<div class="div4">\n' +
+            '<label style="font-weight: bold;">Title:</label>\n' +
+            '<label>'+ book.Title+ '<br>\n' +
+            '<label style="font-weight: bold;">Author:</label>\n' +
+            '<label>'+ book.Author+ '<br>\n' +
+            '<label style="font-weight: bold;">Publication Date:</label>\n' +
+            '<label>'+ book.PublicationDate+ '<br>\n' +
+            '<label style="font-weight: bold;">ISBN:</label>\n' +
+            '<label>'+ book.ISBN+ '<br>\n' +
+            '<label style="font-weight: bold;">Count:</label>\n' +
+            '<label>'+ book.Copies+ ' &emsp;&emsp;&emsp; </label>\n' +
+            '<input type="button" onclick=Order('+ i +') value="Order">\n' +
+         '</div>\n' +
+        '</div>\n';
+        i += 1;
+        }
+      div.innerHTML += '<\form>\n';
+      document.getElementById('Center').appendChild(div);
+     }
+     }
+     }
+
+     function Order(n){
+     xhr.open("POST", "http://127.0.0.1:5000/order", true);
+     xhr.setRequestHeader('Access-Control-Allow-Headers', '*');
+     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+     xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+     var param = "UserID="+ UserID + "&ISBN=" + data[n].ISBN;
+     console.log(param);
+     if (data[n].Copies > 0)
+     {
+        xhr.send(param);
+        xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+        window.alert("Succeed");
+        window.location.href="UserHome.html";
+        }
+        }
+     }
+     else
+     {   window.alert("We don't have this book now.");}
+     }
+
     </script>
 </body>
 </html>
