@@ -1,6 +1,9 @@
 # Library Control
 This is a project for class CSC 33600, the topic of our team is Online Library.
 
+### Team Members
+Jie Yu, Alice Maharjan, Weiye Kuang, Huihong Yu 
+
 ### Database:
 
 We use MariaDB as our database support.
