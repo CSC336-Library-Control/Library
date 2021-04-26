@@ -21,8 +21,8 @@ CREATE TABLE Books(
     REMOVE ENUM('True', 'False') DEFAULT 'False'
 );
 
-DROP TABLE if EXISTS USER;
-CREATE TABLE USER(
+DROP TABLE if EXISTS User;
+CREATE TABLE User(
     UserID VARCHAR(32) PRIMARY KEY,
     NAME VARCHAR(32),
     BirthDate VARCHAR(32),
@@ -41,7 +41,7 @@ CREATE TABLE BorrowRecord(
     DueDate TIMESTAMP,
     StaffID VARCHAR(32) NOT NULL,
     Returned ENUM('True', 'False') NOT NULL,
-    FOREIGN KEY(UserID) REFERENCES USER(UserID),
+    FOREIGN KEY(UserID) REFERENCES User(UserID),
     FOREIGN KEY(ISBN) REFERENCES Books(ISBN),
     FOREIGN KEY(StaffID) REFERENCES USER(UserID)
 );
@@ -86,12 +86,12 @@ INSERT INTO Login VALUES ('User4', '000000', 'User');
 INSERT INTO Login VALUES ('Staff1', '000000', 'Staff');
 INSERT INTO Login VALUES ('Staff2', '000000', 'Staff');
 
-INSERT INTO USER(UserID, NAME) VALUES ('User1', 'User1');
-INSERT INTO USER(UserID, NAME) VALUES ('User2', 'User2');
-INSERT INTO USER(UserID, NAME) VALUES ('User3', 'User3');
-INSERT INTO USER(UserID, NAME) VALUES ('User4', 'User4');
-INSERT INTO USER(UserID, NAME) VALUES ('Staff1', 'Staff1');
-INSERT INTO USER(UserID, NAME) VALUES ('Staff2', 'Staff2');
+INSERT INTO User(UserID, NAME) VALUES ('User1', 'User1');
+INSERT INTO User(UserID, NAME) VALUES ('User2', 'User2');
+INSERT INTO User(UserID, NAME) VALUES ('User3', 'User3');
+INSERT INTO User(UserID, NAME) VALUES ('User4', 'User4');
+INSERT INTO User(UserID, NAME) VALUES ('Staff1', 'Staff1');
+INSERT INTO User(UserID, NAME) VALUES ('Staff2', 'Staff2');
 
 SELECT * FROM Login;
 SELECT * FROM USER;
