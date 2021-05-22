@@ -59,10 +59,10 @@ def newUser():
     userID = request.form['UserID']
     password = request.form['Password']
     role = request.form['Role']
-    sql = "insert into login values(?,?,?)"
-    sql2 = "insert into user(userID, Name) values(?, ?)"
+    sql = "insert into Login values(?,?,?)"
+    sql2 = "insert into User(UserID, Name) values(?, ?)"
     try:
-        cur.execute(sql,(userID,password,role))
+        cur.execute(sql, (userID, password, role))
         conn.commit()
         cur.execute(sql2, (userID, userID))
         conn.commit()
@@ -93,7 +93,7 @@ Output:
 '''
 @app.route('/book', methods=['POST'])
 def book():
-    sql = "select * from Books where remove=?"
+    sql = "select * from Books where Remove=?"
     cur.execute(sql, ('False',))
     row_headers = [x[0] for x in cur.description]
     result = cur.fetchall()
@@ -105,7 +105,7 @@ def book():
 
 @app.route('/getRemove', methods=['POST'])
 def getRemove():
-    sql = "select * from Books where remove=?"
+    sql = "select * from Books where Remove=?"
     cur.execute(sql, ('True',))
     row_headers = [x[0] for x in cur.description]
     result = cur.fetchall()
@@ -138,7 +138,7 @@ def addBook():
 @app.route('/removeBook', methods=['POST'])
 def remove():
     isbn = request.form['ISBN']
-    sql = "Update Books set remove=? where ISBN=?"
+    sql = "Update Books set Remove=? where ISBN=?"
     cur.execute(sql, ('True', isbn))
     conn.commit()
     return '0'
@@ -147,7 +147,7 @@ def remove():
 @app.route('/recoverBook', methods=['POST'])
 def recover():
     isbn = request.form['ISBN']
-    sql = "Update Books set remove=? where ISBN=?"
+    sql = "Update Books set Remove=? where ISBN=?"
     cur.execute(sql, ('False', isbn))
     conn.commit()
     return '0'
@@ -209,15 +209,15 @@ def search():
     context = request.form['Context']
     searchType = request.form['Type']
     if searchType == 'ISBN':
-        sql = "select * from Books where ISBN like ? and remove='False'"
+        sql = "select * from Books where ISBN like ? and Remove='False'"
         str1 = '%' + context + '%'
         cur.execute(sql, (str1,))
     elif searchType == 'Title':
-        sql2 = "select * from Books where Title like ? and remove='False' "
+        sql2 = "select * from Books where Title like ? and Remove='False' "
         str1 = '%' + context + '%'
         cur.execute(sql2, (str1,))
     else:
-        sql3 = "select * from Books where Author like ? and remove='False'"
+        sql3 = "select * from Books where Author like ? and Remove='False'"
         str2 = '%' + context + '%'
         cur.execute(sql3, (str2,))
     row_headers = [x[0] for x in cur.description]
@@ -269,9 +269,9 @@ def returnBook():
     conn.commit()
     if 'Damaged' not in issue:
         sql3 = "Update Books set Copies = Copies + 1 where ISBN =?"
-        sql4 = """select ISBN from ReturnRecord join  BorrowRecord 
-                  on BorrowRecord.BorrowID = ReturnRecord.BorrowID 
-                  where BorrowRecord.BorrowID =?"""
+        sql4 = """select ISBN from ReturnRecord join  BorrowRecordView 
+                  on BorrowRecordView.BorrowID = ReturnRecord.BorrowID 
+                  where BorrowRecordView.BorrowID =?"""
         cur.execute(sql4, (borrowID,))
         result = []
         for data in cur:
@@ -302,8 +302,8 @@ Sample output:
 @app.route('/borrowRecord', methods=['POST'])
 def borrowRecord():
     userID = request.form['UserID']
-    sql = """select BorrowID, Books.ISBN, Title, Author, BorrowDate, DueDate, Image from BorrowRecord 
-             join Books on BorrowRecord.ISBN=Books.ISBN
+    sql = """select BorrowID, Books.ISBN, Title, Author, BorrowDate, DueDate, Image from BorrowRecordView 
+             join Books on BorrowRecordView.ISBN=Books.ISBN
              where UserID = ? and Returned=? and Remove=?"""
     cur.execute(sql, (userID, "False", "False"))
     row_headers = [x[0] for x in cur.description]
@@ -336,9 +336,9 @@ Sample Output:
 @app.route('/returnRecord', methods=['POST'])
 def returnRecord():
     userID = request.form['UserID']
-    sql = """Select Books.ISBN, Title, Author, BorrowDate, ReturnDate, DueDate, Image, Issue from BorrowRecord
-             join ReturnRecord on BorrowRecord.BorrowId = ReturnRecord.BorrowId
-             join Books on BorrowRecord.ISBN = Books.ISBN
+    sql = """Select Books.ISBN, Title, Author, BorrowDate, ReturnDate, DueDate, Image, Issue from BorrowRecordView
+             join ReturnRecord on BorrowRecordView.BorrowId = ReturnRecord.BorrowId
+             join Books on BorrowRecordView.ISBN = Books.ISBN
              where UserID =? and Remove = ?"""
     cur.execute(sql, (userID, "False"))
     row_headers = [x[0] for x in cur.description]
@@ -369,9 +369,9 @@ def cancel():
     sql = "update OrderRecord set Status=? where OrderID=?"
     cur.execute(sql, ("Canceled", orderID))
     conn.commit()
-    sql2 = """update Books set Copies = copies + 1
+    sql2 = """update Books set Copies = Copies + 1
               where ISBN in 
-              (select ISBN from OrderRecord where orderID=?)"""
+              (select ISBN from OrderRecord where OrderID=?)"""
     cur.execute(sql2, (orderID,))
     conn.commit()
     return '0'
@@ -382,7 +382,7 @@ def complete():
     orderID = request.form['OrderID']
     orderID = int(orderID)
     staffID = request.form['StaffID']
-    sql1 = "select isbn, UserID from OrderRecord where OrderID =?"
+    sql1 = "select ISBN, UserID from OrderRecord where OrderID =?"
     cur.execute(sql1, (orderID,))
     result = []
     for data in cur:
@@ -427,8 +427,8 @@ def allOrders():
 
 @app.route('/allBorrow', methods=['POST'])
 def allBorrow():
-    sql = """select BorrowID, Books.ISBN, Title, Author, BorrowDate, DueDate, Image, UserID from BorrowRecord 
-             join Books on BorrowRecord.ISBN=Books.ISBN
+    sql = """select BorrowID, Books.ISBN, Title, Author, BorrowDate, DueDate, Image, UserID from BorrowRecordView 
+             join Books on BorrowRecordView.ISBN=Books.ISBN
              where Returned=? and Remove=?"""
     cur.execute(sql, ("False", "False"))
     row_headers = [x[0] for x in cur.description]
