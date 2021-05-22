@@ -6,7 +6,7 @@ USE Library;
 DROP TABLE if EXISTS Login;
 CREATE TABLE Login(
     UserID VARCHAR(32) PRIMARY KEY,
-    PASSWORD VARCHAR(32) NOT NULL,
+    Password VARCHAR(32) NOT NULL,
     Role ENUM('User','Staff') NOT NULL
 );
 
@@ -18,13 +18,13 @@ CREATE TABLE Books(
     PublicationDate VARCHAR(32),
     Author VARCHAR(32) NOT NULL,
     Image VARCHAR(32),
-    REMOVE ENUM('True', 'False') DEFAULT 'False'
+    Remove ENUM('True', 'False') DEFAULT 'False'
 );
 
 DROP TABLE if EXISTS User;
 CREATE TABLE User(
     UserID VARCHAR(32) PRIMARY KEY,
-    NAME VARCHAR(32),
+    Name VARCHAR(32),
     BirthDate VARCHAR(32),
     Email VARCHAR(32),
     Phone VARCHAR(32),
@@ -38,7 +38,7 @@ CREATE TABLE BorrowRecord(
     UserID VARCHAR(32) NOT NULL,
     ISBN VARCHAR(32) NOT NULL,
     BorrowDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    DueDate TIMESTAMP,
+    -- DueDate TIMESTAMP,
     StaffID VARCHAR(32) NOT NULL,
     Returned ENUM('True', 'False') NOT NULL,
     FOREIGN KEY(UserID) REFERENCES User(UserID),
@@ -48,7 +48,7 @@ CREATE TABLE BorrowRecord(
 
 CREATE TRIGGER due_date BEFORE INSERT ON BorrowRecord
 FOR EACH ROW SET
-    NEW.DueDate = TIMESTAMPADD(DAY, 14, NEW.BorrowDate),
+    -- NEW.DueDate = TIMESTAMPADD(DAY, 14, NEW.BorrowDate),
     NEW.Returned = 'False';
 
 
@@ -67,15 +67,19 @@ CREATE TABLE OrderRecord(
     OrderID INTEGER PRIMARY KEY AUTO_INCREMENT,
     ISBN VARCHAR(32) NOT NULL,
     UserID VARCHAR(32) NOT NULL,
-    DATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    STATUS ENUM('Waiting', 'Canceled', 'Completed') NOT NULL,
-    FOREIGN KEY(ISBN) REFERENCES books(ISBN),
+    Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Status ENUM('Waiting', 'Canceled', 'Completed') NOT NULL,
+    FOREIGN KEY(ISBN) REFERENCES Books(ISBN),
     FOREIGN KEY(UserID) REFERENCES User(UserID)
 );
 
+
 CREATE TRIGGER order_status BEFORE INSERT ON OrderRecord
-FOR EACH ROW SET
-    NEW.STATUS = 'Waiting';
+ FOR EACH ROW SET
+   NEW.STATUS = 'Waiting';
+   
+CREATE VIEW BorrowRecordView AS
+SELECT *, TIMESTAMPADD(DAY, 14, BorrowDate) AS DueDate FROM BorrowRecord;
 
     
 INSERT INTO Login VALUES ('User1', '000000', 'User');
@@ -86,12 +90,12 @@ INSERT INTO Login VALUES ('User4', '000000', 'User');
 INSERT INTO Login VALUES ('Staff1', '000000', 'Staff');
 INSERT INTO Login VALUES ('Staff2', '000000', 'Staff');
 
-INSERT INTO User(UserID, NAME) VALUES ('User1', 'User1');
-INSERT INTO User(UserID, NAME) VALUES ('User2', 'User2');
-INSERT INTO User(UserID, NAME) VALUES ('User3', 'User3');
-INSERT INTO User(UserID, NAME) VALUES ('User4', 'User4');
-INSERT INTO User(UserID, NAME) VALUES ('Staff1', 'Staff1');
-INSERT INTO User(UserID, NAME) VALUES ('Staff2', 'Staff2');
+INSERT INTO USER(UserID, NAME) VALUES ('User1', 'User1');
+INSERT INTO USER(UserID, NAME) VALUES ('User2', 'User2');
+INSERT INTO USER(UserID, NAME) VALUES ('User3', 'User3');
+INSERT INTO USER(UserID, NAME) VALUES ('User4', 'User4');
+INSERT INTO USER(UserID, NAME) VALUES ('Staff1', 'Staff1');
+INSERT INTO USER(UserID, NAME) VALUES ('Staff2', 'Staff2');
 
 SELECT * FROM Login;
 SELECT * FROM USER;
@@ -112,9 +116,10 @@ SELECT * FROM Books;
 
 INSERT INTO BorrowRecord(UserID, ISBN, StaffID) VALUES ('User1', '1250178606', 'Staff1');
 
-SELECT * FROM borrowrecord;
+SELECT * FROM BorrowRecord;
 
 INSERT INTO OrderRecord(UserID, ISBN) VALUES ('User1', '1250178606');
 INSERT INTO OrderRecord(UserID, ISBN) VALUES ('User2', '1250178606');
 
 SELECT * FROM OrderRecord;
+SELECT * FROM BorrowRecordView;
